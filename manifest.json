@@ -1,0 +1,10 @@
+{
+  "name": "Reflex Test",
+  "description": "Kullanıcıların tepki hızını ölçen Mini Uygulama.",
+  "mini_app_name": "ReflexTest",
+  "base_app_account_association": {
+    "url": "https://refleks-mini-uygulama.vercel.app",
+    "account_address": "",
+    "signature": ""
+  }
+}  
