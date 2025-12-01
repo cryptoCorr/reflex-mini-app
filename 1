@@ -1,0 +1,174 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+// Base Mini App SDK entegrasyonu
+const SDK = typeof window !== 'undefined' && window.SDK; 
+
+// Average Human Reaction Time (Ortalama İnsan Tepki Süresi)
+const AVERAGE_TIME_MS = 250; 
+
+// Refleks Testi Durumları
+const STATE = {
+    INITIAL: 'INITIAL', 
+    WAITING: 'WAITING', 
+    READY: 'READY',     
+    RESULT: 'RESULT',   
+};
+
+const App = () => {
+    const [gameState, setGameState] = useState(STATE.INITIAL);
+    const [startTime, setStartTime] = useState(null);
+    const [reactionTime, setReactionTime] = useState(null); 
+    const [message, setMessage] = useState("Ready to test your reflex?");
+    
+    const timeoutRef = useRef(null);
+
+    // VİDEODAKİ GİBİ: Base App'e hazır olduğunu bildir (SDK Entegrasyonu)
+    useEffect(() => {
+        if (SDK && SDK.Actions && SDK.Actions.ready) {
+            SDK.Actions.ready();
+        }
+    }, []);
+
+    // Tıklanacak alana tıklandığında çalışır
+    const handleScreenClick = () => {
+        const now = performance.now();
+
+        switch (gameState) {
+            case STATE.INITIAL:
+            case STATE.RESULT:
+                startWaitingPhase();
+                break;
+
+            case STATE.WAITING:
+                clearTimeout(timeoutRef.current);
+                setMessage("TOO EARLY! Clicked before the green light. Tap to restart.");
+                setGameState(STATE.INITIAL);
+                break;
+
+            case STATE.READY:
+                const timeTaken = Math.round(now - startTime);
+                setReactionTime(timeTaken);
+                
+                let resultMessage;
+                if (timeTaken < 150) {
+                    resultMessage = "Lightning Fast! That's exceptional.";
+                } else if (timeTaken < AVERAGE_TIME_MS) {
+                    resultMessage = "Above Average! Great job.";
+                } else if (timeTaken < 350) {
+                    resultMessage = "Average Time. You're doing okay.";
+                } else {
+                    resultMessage = "Below Average. Try to focus more!";
+                }
+                
+                setMessage(resultMessage);
+                setGameState(STATE.RESULT);
+                break;
+                
+            default:
+                break;
+        }
+    };
+
+    // Bekleme aşamasını başlatır
+    const startWaitingPhase = () => {
+        setMessage("Wait for Green. Get Ready...");
+        setGameState(STATE.WAITING);
+        setReactionTime(null);
+
+        // Rastgele bekleme süresi belirle (2000ms - 5000ms arası)
+        const randomDelay = Math.floor(Math.random() * 3000) + 2000;
+
+        timeoutRef.current = setTimeout(() => {
+            setStartTime(performance.now());
+            setMessage("GREEN! CLICK NOW!");
+            setGameState(STATE.READY);
+        }, randomDelay);
+    };
+
+    // Temizleme işlevi (bileşen ayrıldığında veya durum değiştiğinde)
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
+    // ===============================================
+    // UI VE STİL HESAPLAMALARI
+    // ===============================================
+
+    const getBgColorClass = () => {
+        switch (gameState) {
+            case STATE.WAITING:
+                return 'bg-red-600 text-white'; 
+            case STATE.READY:
+                return 'bg-green-500 text-white'; 
+            case STATE.RESULT:
+                return 'bg-indigo-600 text-white'; 
+            case STATE.INITIAL:
+            default:
+                return 'bg-gray-800 text-gray-200'; 
+        }
+    };
+    
+    const getMessageText = () => {
+        if (gameState === STATE.RESULT && reactionTime !== null) {
+            return reactionTime + " ms";
+        }
+        return message;
+    };
+
+    const getInstructionText = () => {
+        if (gameState === STATE.WAITING) {
+            return "Do not click. Wait for the color change!";
+        }
+        if (gameState === STATE.INITIAL || gameState === STATE.RESULT) {
+            return "Tap anywhere to start.";
+        }
+        return "We are recording your reaction time!";
+    };
+
+    return (
+        <div 
+            id="test-area"
+            className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-300 ${getBgColorClass()}`}
+            onClick={handleScreenClick}
+        >
+            <script src="https://cdn.tailwindcss.com"></script>
+            {/* Hata Düzeltildi: 'jsx' özelliği kaldırıldı */}
+            <style>{`
+                body { font-family: 'Inter', sans-serif; cursor: pointer; }
+                #test-area {
+                    /* Mobil cihazlarda dokunmatik alanı tam kapla */
+                    width: 100vw;
+                    height: 100vh;
+                    user-select: none;
+                }
+            `}</style>
+
+            <div className="text-center w-full max-w-md p-6 rounded-xl shadow-2xl backdrop-blur-sm bg-black/30">
+                <h1 className="text-6xl font-extrabold mb-4">
+                    {getMessageText()}
+                </h1>
+                
+                {reactionTime !== null && gameState === STATE.RESULT && (
+                    <div className="mt-6 p-4 bg-white/20 rounded-lg">
+                        <p className="text-xl font-bold">
+                           {message}
+                        </p>
+                        <p className="text-sm mt-2 opacity-80">
+                           Average Human Reaction Time is ~{AVERAGE_TIME_MS} ms.
+                        </p>
+                    </div>
+                )}
+                
+                <p className="mt-8 text-lg font-light opacity-80">
+                    {getInstructionText()}
+                </p>
+            </div>
+        </div>
+    );
+};
+
+export default App;
