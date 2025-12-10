@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "BURAYA_BASE_SITESINDEN_ALDIGIN_HEADER_KODU_GELECEK",
+    "payload": "BURAYA_BASE_SITESINDEN_ALDIGIN_PAYLOAD_KODU_GELECEK",
+    "signature": "BURAYA_BASE_SITESINDEN_ALDIGIN_SIGNATURE_KODU_GELECEK"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Refleks Testi",
+    "iconUrl": "https://senin-vercel-projen.vercel.app/icon.png",
+    "homeUrl": "https://senin-vercel-projen.vercel.app",
+    "imageUrl": "https://senin-vercel-projen.vercel.app/og-image.png",
+    "buttonTitle": "Testi Başlat",
+    "splashImageUrl": "https://senin-vercel-projen.vercel.app/splash.png",
+    "splashBackgroundColor": "#111111",
+    "webhookUrl": "https://senin-vercel-projen.vercel.app/api/webhook"
+  }
+}
